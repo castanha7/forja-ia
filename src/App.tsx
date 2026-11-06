@@ -1,13 +1,16 @@
-import React, { useState, Suspense } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Sky, Environment, ContactShadows } from '@react-three/drei'
+import React, { useState, Suspense, useRef } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
+import { OrbitControls, Sky, Environment, ContactShadows, PointerLockControls } from '@react-three/drei'
 import { GameWorld } from './systems/GameWorld'
 import { MobileUI } from './ui/MobileUI'
 import { DifficultySelector } from './ui/DifficultySelector'
+import { useStore } from './systems/store'
 
 export default function App() {
   const [gameState, setGameState] = useState<'menu' | 'playing'>('menu')
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard' | 'impossible'>('medium')
+  const setCameraMode = useStore(state => state.setCameraMode)
+  const cameraMode = useStore(state => state.cameraMode)
 
   return (
     <div className="w-full h-screen bg-slate-900 overflow-hidden relative">
@@ -29,10 +32,18 @@ export default function App() {
               <Sky sunPosition={[100, 20, 100]} />
               <ambientLight intensity={0.5} />
               <directionalLight position={[10, 20, 10]} intensity={1} castShadow />
+              
               <GameWorld difficulty={difficulty} />
+              
               <Environment preset="city" />
               <ContactShadows position={[0, 0, 0]} opacity={0.4} scale={20} blur={2} far={4.5} />
-              <OrbitControls makeDefault enablePan={false} maxPolarAngle={Math.PI / 2.1} />
+              
+              {/* Câmera Roblox Style (Alterna entre 1ª e 3ª pessoa) */}
+              {cameraMode === 'third' ? (
+                <OrbitControls makeDefault enablePan={false} maxPolarAngle={Math.PI / 2.1} enableZoom={true} />
+              ) : (
+                <PointerLockControls />
+              )}
             </Suspense>
           </Canvas>
           <MobileUI onExit={() => setGameState('menu')} />
